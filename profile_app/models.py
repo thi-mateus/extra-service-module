@@ -2,9 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class Military(AbstractUser):
+class Military(models.Model):
     qra = models.CharField(max_length=100)
-    grau_hierarquico = models.CharField()
+    grau_hierarquico = models.CharField(max_length=20)
     matricula = models.CharField(max_length=10, unique=True)
     telefone = models.CharField(max_length=20)
     email = models.EmailField()

@@ -4,7 +4,7 @@ from service_app.models import Service
 
 
 class Requests(models.Model):
-    militar = models.ForeignKey(Military, on_delete=models.PROTECT)
+    id_mil = models.ForeignKey(Military, on_delete=models.PROTECT)
     id_sv = models.ForeignKey(Service, on_delete=models.PROTECT)
     id_opcao = models.PositiveSmallIntegerField()
     data_solicitacao = models.DateField()
