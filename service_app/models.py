@@ -10,7 +10,8 @@ class Service(models.Model):
     data_termino = models.DateField()
     vagas = models.PositiveIntegerField()
     observacao = models.TextField()
-    militar = models.ManyToManyField(Military)
+    militar = models.ManyToManyField(
+        'Military', related_name='militar_servico')
 
     def __str__(self):
         return self.local
