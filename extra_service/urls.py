@@ -21,6 +21,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path('', include('service_app.urls')),
+    path('profile/', include('profile_app.urls')),
+    path('request/', include('request_app.urls')),
     path('admin/', admin.site.urls),
 
     # TODO: Remover debug toolbar
