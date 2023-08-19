@@ -9,7 +9,7 @@ class Pay(View):
         return HttpResponse('Pay')
 
 
-class FinalizeRequest(View):
+class SaveRequest(View):
     def get(self, *args, **kwargs):
         return HttpResponse('Finalize Request')
 

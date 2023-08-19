@@ -5,6 +5,6 @@ app_name = 'request'
 
 urlpatterns = [
     path('', views.Pay.as_view(), name='pay'),
-    path('finalizerequest/', views.FinalizeRequest.as_view(), name='finalizerequest'),
+    path('saverequest/', views.SaveRequest.as_view(), name='saverequest'),
     path('detail/', views.Detail.as_view(), name='detail'),
 ]

@@ -12,3 +12,7 @@ def format_time_service(time):
 
 def weekday_name(date):
     return WEEKDAYS[date.weekday()]
+
+
+def cart_total_qtd(cart):
+    return sum([item['service_qtd'] for item in cart.values()])

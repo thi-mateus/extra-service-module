@@ -52,7 +52,6 @@ class AddToCart(View):
         service_hora_termino = service.hora_termino.strftime("%H:%M")
         service_data_termino = service.data_termino.strftime("%d/%m/%Y")
         service_vagas = service.vagas
-        service_qtd = 1
         service_observacao = service.observacao
         service_image = service.image
 
@@ -63,6 +62,7 @@ class AddToCart(View):
 
         service_slug = service.slug
         service_militares = serialize('json', service.militares.all())
+        service_qtd = 1
 
         if service.vagas < 1:
             messages.error(
@@ -78,18 +78,12 @@ class AddToCart(View):
         cart = self.request.session['cart']
 
         if service_id in cart:
-            qtd_cart = cart[service_id]['service_qtd']
-            qtd_cart += 1
-
-            if service_vagas < qtd_cart:
-                messages.error(
-                    self.request,
-                    f'Vagas Insuficientes para {qtd_cart}x no '
-                    f'serviço "{service.local}-{service.data_inicio.strftime("%d/%m/%Y")}"'
-                )
-                qtd_cart = service.vagas
-
-            cart[service_id]['service_qtd'] = qtd_cart
+            messages.error(
+                self.request,
+                f'O serviço "{service.local}-{service.data_inicio.strftime("%d/%m/%Y")}" '
+                f'já foi solicitado!'
+            )
+            return redirect(http_referer)
 
         else:
             cart[service_id] = {
@@ -104,23 +98,62 @@ class AddToCart(View):
                 'service_image': service_image,
                 'service_slug': service_slug,
                 'service_militares': service_militares,
+                'service_qtd': service_qtd,
             }
 
         self.request.session.save()
-        pprint(cart)
-        return HttpResponse(f'{service.local} {service.data_inicio}')
+        messages.success(
+            self.request,
+            f'O serviço "{service.local} - {service.data_inicio}" '
+            f'foi adicionado!'
+        )
+        return redirect(http_referer)
 
 
 class RemoveFromCart(View):
+
     def get(self, *args, **kwargs):
-        return HttpResponse('Remove from cart')
+
+        http_referer = self.request.META.get(
+            'HTTP_REFERER',
+            reverse('service:list')
+        )
+        service_id = self.request.GET.get('sid')
+
+        # Verifica se o serviço existe
+        if not service_id:
+            return redirect(http_referer)
+
+        # Verifica se o carrinho existe
+        if not self.request.session.get('cart'):
+            return redirect(http_referer)
+
+        # Verifica se o id existe no carrinho
+        if service_id not in self.request.session['cart']:
+            return redirect(http_referer)
+
+        cart = self.request.session['cart'][service_id]
+
+        messages.success(
+            self.request,
+            f'O serviço {cart["service_local"]} - {cart["service_data_inicio"]} '
+            f'foi removido!'
+        )
+
+        del self.request.session['cart'][service_id]
+        self.request.session.save()
+
+        return redirect(http_referer)
 
 
 class Cart(View):
     def get(self, *args, **kwargs):
-        return HttpResponse('Cart')
+        context = {
+            'cart': self.request.session.get('cart', {})
+        }
+        return render(self.request, 'service/cart.html', context)
 
 
-class Finish(View):
+class PurchaseSummary(View):
     def get(self, *args, **kwargs):
         return HttpResponse('Finish')
