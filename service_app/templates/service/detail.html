@@ -20,12 +20,7 @@
                     <p class="lead">{{ service.data_inicio|format_date_service }} ({{service.data_inicio|weekday_name}})</p>
                     <p class="lead">{{service.observacao|linebreaks }}</p>
                     
- 
-                    {% comment %} <p class="lead">
-                        <span id="variation-preco" class="lead product-price">R$29,90</span>
-                        <span id="variation-preco-promocional"
-                            class="lead product-old-price text-muted">R$49,90</span>
-                    </p> {% endcomment %}
+
 
                     <form action="{% url 'service:addtocart' %}" id="form-add-to-cart">
                         <div class="form-group">

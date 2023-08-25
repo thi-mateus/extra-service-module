@@ -6,9 +6,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.core.serializers import serialize
 from . import models
-
-
-from pprint import pprint
+from profile_app.models import Military
 
 
 class ListServices(ListView):
@@ -27,9 +25,6 @@ class DetailService(DetailView):
 
 class AddToCart(View):
     def get(self, *args, **kwargs):
-        # if self.request.session.get('cart'):
-        #     del self.request.session['cart']
-        #     self.request.session.save()
 
         http_referer = self.request.META.get(
             'HTTP_REFERER',
@@ -156,4 +151,27 @@ class Cart(View):
 
 class PurchaseSummary(View):
     def get(self, *args, **kwargs):
-        return HttpResponse('Finish')
+        if not self.request.user.is_authenticated:
+            return redirect('profile:create')
+
+        profile = Military.objects.filter(usuario=self.request.user).exists()
+
+        if not profile:
+            messages.error(
+                self.request,
+                'Usuário sem perfil'
+            )
+            return redirect('profile:create')
+
+        if not self.request.session.get('cart'):
+            messages.error(
+                self.request,
+                'Carrinho vazio'
+            )
+            return redirect('service:list')
+
+        context = {
+            'usuario': self.request.user,
+            'cart': self.request.session['cart']
+        }
+        return render(self.request, 'service/purchasesummary.html', context)

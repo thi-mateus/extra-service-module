@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load omfilters %}
+
+{% block titulo %}Resumo da Solicitação | {% endblock %}
+
+{% block content %}
+
+<div class="row mb-5">
+    <div class="col-lg">
+        <h2>Resumo da Solicitação</h2>
+
+        <p class="lead">Dados do militar</p>
+        <p>Caso precise editar, <a href="{% url 'profile:create' %}">clique aqui</a></p>
+        <dl class="row">
+            <dt class="col-lg-2">QRA:</dt>
+            <dd class="col-lg-4">{{ user.military.grau_hierarquico }} {{ user.military.qra }}</dd>
+
+            <dt class="col-lg-2">Matrícula:</dt>
+            <dd class="col-lg-4">{{ user.military.matricula }}</dd>
+
+            <dt class="col-lg-2">Telefone:</dt>
+            <dd class="col-lg-4">{{ user.military.telefone }}</dd>
+            <dt class="col-lg-2">E-mail:</dt>
+            <dd class="col-lg-4">{{ user.email }}</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col">
+        <h3>Suas solicitações</h3>
+        <p class="lead">Os serviços que você escolheu.</p>
+
+        {% include 'partials/_cart.html' %}
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-lg">
+        <p class='lead'>Qtd de serviços</p>
+
+        <div class='table-responsive'>
+            <table class="table">
+                <tr>
+                    <td class="font-weight-bold">Total</td>
+                    <td>{{ request.session.cart|cart_total_qtd}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg mt-auto">
+        <a class="btn btn-block btn-primary btn-lg" href="{% url 'request:pay' %}">
+            Realizar pedido e pagar
+        </a>
+    </div>
+</div>
+
+{% endblock %}

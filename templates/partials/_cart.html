@@ -1,0 +1,31 @@
+{% load static %}
+{% load omfilters %}
+
+<div class="table-responsive">
+    <table class="table">
+        <tr>
+            <th>Local</th>
+            <th>Dia</th>
+            <th>Horário</th>
+            <th>Observação</th>
+        </tr>
+
+        {% for line in cart.values %}
+        <tr>
+            <td>
+                <a href="{% url 'service:detail' line.service_slug %}">
+                {{ line.service_local }}
+                </a>
+                <a class="ml-3" href="{% url 'service:removefromcart' %}?sid={{ line.service_id }}">
+                    <i class="fas fa-times-circle text-danger" aria-hidden="true"></i>
+                </a>
+            </td>
+            <td>{{ line.service_data_inicio }}</td>
+            <td>{{ line.service_hora_inicio }} às {{ line.service_hora_termino }}</td>
+            <td>{{ line.service_observacao }}</td>
+        </tr>
+        {% endfor %}
+
+
+    </table>
+</div>
