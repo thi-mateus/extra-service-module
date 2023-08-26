@@ -7,8 +7,10 @@
         <div class="card-columns">
 
             {% for service in services %}
-
-            <div class="card">
+            
+            {% if service.status == 'A' %}
+           
+            <div class="card">            
                 
                 {% if  service.image %}
                 <a href="{{ service.slug }}">
@@ -30,6 +32,7 @@
                         Detalhes
                     </a>
                 </div>
+                {% endif %}
             </div>
 
             {% endfor %}
