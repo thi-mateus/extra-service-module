@@ -20,6 +20,14 @@ class Service(models.Model):
     slug = models.SlugField(unique=True, blank=True, null=True)
     militares = models.ManyToManyField(
         Military, related_name='servicos', blank=True)
+    status = models.CharField(
+        max_length=1,
+        default='A',
+        choices=(
+            ('A', 'Aberto'),
+            ('F', 'Fechado'),
+        )
+    )
 
     def __str__(self):
         return f'{self.local} - {self.data_inicio}'

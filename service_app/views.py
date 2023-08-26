@@ -5,6 +5,7 @@ from django.views import View
 from django.http import HttpResponse
 from django.contrib import messages
 from django.core.serializers import serialize
+
 from . import models
 from profile_app.models import Military
 
@@ -14,6 +15,9 @@ class ListServices(ListView):
     template_name = 'service/list.html'
     context_object_name = 'services'
     paginate_by = 10
+
+    def get_queryset(self):
+        return models.Service.objects.all().order_by('data_inicio')
 
 
 class DetailService(DetailView):
@@ -49,6 +53,7 @@ class AddToCart(View):
         service_vagas = service.vagas
         service_observacao = service.observacao
         service_image = service.image
+        service_status = service.status
 
         if service_image:
             service_image = service_image.name
@@ -73,7 +78,7 @@ class AddToCart(View):
         cart = self.request.session['cart']
 
         if service_id in cart:
-            messages.error(
+            messages.warning(
                 self.request,
                 f'O serviço "{service.local}-{service.data_inicio.strftime("%d/%m/%Y")}" '
                 f'já foi solicitado!'
@@ -94,6 +99,7 @@ class AddToCart(View):
                 'service_slug': service_slug,
                 'service_militares': service_militares,
                 'service_qtd': service_qtd,
+                'service_status': service_status,
             }
 
         self.request.session.save()
@@ -102,7 +108,7 @@ class AddToCart(View):
             f'O serviço "{service.local} - {service.data_inicio}" '
             f'foi adicionado!'
         )
-        return redirect(http_referer)
+        return redirect('service:list')
 
 
 class RemoveFromCart(View):
@@ -166,7 +172,7 @@ class PurchaseSummary(View):
         if not self.request.session.get('cart'):
             messages.error(
                 self.request,
-                'Carrinho vazio'
+                'Não há solicitação de serviço.'
             )
             return redirect('service:list')
 

@@ -3,13 +3,14 @@ from profile_app.models import Military
 from service_app.models import Service
 
 
-class Requests(models.Model):
+class Request(models.Model):
     id_mil = models.ForeignKey(Military, on_delete=models.CASCADE)
     id_sv = models.ForeignKey(Service, on_delete=models.CASCADE)
     id_opcao = models.PositiveSmallIntegerField()
-    data_solicitacao = models.DateField()
+    data_solicitacao = models.DateTimeField()
     status = models.CharField(
         max_length=1,
+        default='S',
         choices=(
             ('S', 'Solicitado'),
             ('A', 'Agendado'),
