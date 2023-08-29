@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.views import View
 from django.http import HttpResponse
 from django.contrib.auth.models import User
@@ -9,6 +9,13 @@ import copy
 
 from . import models
 from . import forms
+
+
+class ListRequests(DetailView):
+    template_name = 'profile/list_requests.html'
+    model = models.Military
+    pk_url_kwarg = 'pk'
+    context_object_name = 'military'
 
 
 class BaseProfile(View):

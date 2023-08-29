@@ -17,7 +17,7 @@
             <div class="col-lg">
                 <div class="mt-4 mt-lg-0">
                     <h1 class="h2">{{service.local }}</h1>
-                    <p class="lead">{{ service.data_inicio|format_date_service }} ({{service.data_inicio|weekday_name}})</p>
+                    <p class="lead">{{ service.data_inicio|format_date }} ({{service.data_inicio|weekday_name}})</p>
                     <p class="lead">{{service.observacao|linebreaks }}</p>
                     
 
@@ -25,7 +25,7 @@
                     <form action="{% url 'service:addtocart' %}" id="form-add-to-cart">
                         <div class="form-group">
                             <select id="select-variacoes" name="sid" class="form-control form-control-lg">
-                                <option value="{{ service.id }}">{{service.local}} - {{service.data_inicio|format_date_service}}
+                                <option value="{{ service.id }}">{{service.local}} - {{service.data_inicio|format_date}}
                                 </option>
                             </select>
                         </div>
@@ -48,7 +48,7 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="mt-5 mb-5">
-                    <h2 class="text-center">{{service.local }} - Dia: {{service.data_inicio|format_date_service }}</h2>
+                    <h2 class="text-center">{{service.local }} - Dia: {{service.data_inicio|format_date }}</h2>
                     
                     {{service.observacao|linebreaks }}
                     

@@ -1,5 +1,5 @@
-from django.shortcuts import get_object_or_404, render, redirect
-from django.views.generic import ListView
+from django.shortcuts import get_object_or_404, render, redirect, reverse
+from django.views.generic import ListView, DetailView
 from django.views import View
 from django.http import HttpResponse
 from django.contrib import messages
@@ -11,13 +11,31 @@ from datetime import datetime
 import pytz
 
 
-class Send(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Finalize Request')
+class ListRequests(ListView):
+    template_name = 'request/list_requests.html'
+    context_object_name = 'request_list'
+
+    def get_queryset(self):
+        # Filtrar as solicitações associadas ao militar logado e que ainda não foram agendadas
+        military_instance = Military.objects.filter(
+            usuario=self.request.user).first()
+
+        # Filtra apenas as solicitações não agendadas
+        return Request.objects.filter(id_mil=military_instance, status='S')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        military_instance = Military.objects.filter(
+            usuario=self.request.user).first()
+
+        context['military'] = military_instance
+
+        return context
 
 
 class SaveRequest(View):
-    template_name = 'request/send.html'
+    template_name = 'request/saverequest.html'
 
     def get(self, *args, **kwargs):
         if not self.request.user.is_authenticated:
@@ -58,6 +76,9 @@ class SaveRequest(View):
 
                 return redirect('service:cart')
 
+        request = Request()
+        # print(request.pk)
+
         Request.objects.bulk_create(
             [
                 Request(
@@ -75,8 +96,16 @@ class SaveRequest(View):
         )
 
         del self.request.session['cart']
-        # return render(self.request, self.template_name, context)
-        return redirect('request:list')
+
+        return redirect(
+            reverse(
+                'request:list_requests',
+                kwargs={
+                    'pk': Military.objects.filter(
+                        usuario=self.request.user).first().pk
+                }
+            )
+        )
 
 
 class List(View):

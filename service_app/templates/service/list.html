@@ -22,7 +22,7 @@
                     {% comment %} <p class="card-text">{{ service.observacao|linebreaks }}</p> {% endcomment %}
                     <div class="container product-price-block text-center">
                         <span class="product-price">
-                            {{service.data_inicio|format_date_service}} ({{service.data_inicio|weekday_name}})
+                            {{service.data_inicio|format_date}} ({{service.data_inicio|weekday_name}})
                         </span>
                     </div>
                 </div>

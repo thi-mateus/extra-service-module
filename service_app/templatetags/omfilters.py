@@ -1,12 +1,23 @@
 from django.template import Library
 from utils import utils
 
+
 register = Library()
 
 
 @register.filter
-def format_date_service(date):
-    return utils.format_date_service(date)
+def format_date(date):
+    return utils.format_date(date)
+
+
+@register.filter
+def format_time(time):
+    return utils.format_time(time)
+
+
+@register.filter
+def format_datetime(datetime):
+    return utils.format_datetime(datetime)
 
 
 @register.filter

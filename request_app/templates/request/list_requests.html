@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Lista das Solicitações | {% endblock %}
+
+{% load omfilters %}
+{% load static %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col">
+        <h3>Dados do Militar </h3>
+        
+        
+        <div class="row mt-4">
+            <div class="col-lg-2 font-weight-bold">Militar: </div>
+            <div class="col-lg-4">{{ military.grau_hierarquico }} {{ military.qra }}</div>
+            <div class="col-lg-2 font-weight-bold">Matrícula: </div>
+            <div class="col-lg-4">{{ military.matricula }}</div>
+
+            <div class="col-lg-2 font-weight-bold">Telefone: </div>
+            <div class="col-lg-4">{{ military.telefone }}</div>
+            <div class="col-lg-2 font-weight-bold">Email: </div>
+            <div class="col-lg-4">{{ military.email }}</div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <h3>Solicitações</h3>
+            </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+            <table class="table">
+                <tr>
+                    <th>Local</th>
+                    <th>Dia</th>
+                    <th>Horário</th>
+                    <th>Observação</th>
+                    <th>Solicitado em</th>
+                    <th>Status</th>
+                </tr>
+
+                {% for request in request_list %}
+                <tr>
+                    <td>{{ request.id_sv.local }}</td>
+                    <td>{{ request.id_sv.data_inicio|format_date }}</td>
+                    <td>{{ request.id_sv.hora_inicio|format_time }} às {{ request.id_sv.hora_termino|format_time }}</td>
+                    <td>{{ request.id_sv.observacao }}</td>
+                    <td>{{ request.data_solicitacao|format_datetime }}</td>
+                    <td>{{ request.get_status_display }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+
+        <div class="row mt-4">
+            <div class="col">
+                <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}

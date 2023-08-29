@@ -1,13 +1,22 @@
+from django.utils import timezone
+
+
 WEEKDAYS = ["Segunda-feira", "Terça-feira", "Quarta-feira",
             "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
 
 
-def format_date_service(date):
+def format_date(date):
     return date.strftime("%d/%m/%Y")
 
 
-def format_time_service(time):
+def format_time(time):
     return time.strftime("%H:%M")
+
+
+def format_datetime(datetime):
+    local_datetime = datetime.astimezone(timezone.get_current_timezone())
+    formatted_datetime = local_datetime.strftime("%d/%m/%Y %H:%M")
+    return formatted_datetime
 
 
 def weekday_name(date):

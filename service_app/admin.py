@@ -20,11 +20,11 @@ class ServiceAdmin(admin.ModelAdmin):
 
     @admin.display(description='Do dia')
     def get_data_inicio_formatado(self, obj):
-        return utils.format_date_service(obj.data_inicio)
+        return utils.format_date(obj.data_inicio)
 
     @admin.display(description='Ao dia')
     def get_data_termino_formatado(self, obj):
-        return utils.format_date_service(obj.data_termino)
+        return utils.format_date(obj.data_termino)
 
     list_display = ['local', 'get_data_inicio_formatado', 'get_hora_inicio_formatada', 'get_data_termino_formatado',
                     'get_hora_termino_formatada', 'vagas', 'observacao', 'exibir_militares']
