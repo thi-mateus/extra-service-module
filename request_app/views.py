@@ -15,22 +15,22 @@ class ListRequests(ListView):
     template_name = 'request/list_requests.html'
     context_object_name = 'request_list'
 
+    def dispatch(self, *args, **kwargs):
+        if not self.request.user.is_authenticated:
+            messages.error(self.request, 'Você precisa fazer login.')
+            return redirect('profile:create')
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self):
-        # Filtrar as solicitações associadas ao militar logado e que ainda não foram agendadas
         military_instance = Military.objects.filter(
             usuario=self.request.user).first()
-
-        # Filtra apenas as solicitações não agendadas
         return Request.objects.filter(id_mil=military_instance, status='S')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         military_instance = Military.objects.filter(
             usuario=self.request.user).first()
-
         context['military'] = military_instance
-
         return context
 
 
@@ -97,15 +97,7 @@ class SaveRequest(View):
 
         del self.request.session['cart']
 
-        return redirect(
-            reverse(
-                'request:list_requests',
-                kwargs={
-                    'pk': Military.objects.filter(
-                        usuario=self.request.user).first().pk
-                }
-            )
-        )
+        return redirect('request:list_request')
 
 
 class List(View):

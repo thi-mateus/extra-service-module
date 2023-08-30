@@ -4,7 +4,7 @@ from . import views
 app_name = 'request'
 
 urlpatterns = [
-    path('list_requests/<int:pk>',
+    path('list_requests/',
          views.ListRequests.as_view(), name='list_requests'),
     path('saverequest/', views.SaveRequest.as_view(), name='saverequest'),
     path('list/', views.List.as_view(), name='list'),
