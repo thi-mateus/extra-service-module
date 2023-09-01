@@ -21,11 +21,14 @@ class RequestMixin:
 class ListRequests(RequestMixin, ListView):
     template_name = 'request/list_requests.html'
     context_object_name = 'request_list'
+    paginate_by = 10
 
     def get_queryset(self):
         military_instance = Military.objects.get(
             usuario=self.request.user)
-        return Request.objects.filter(id_mil=military_instance, status='S')
+        return Request.objects.filter(
+            id_mil=military_instance, status='S').order_by(
+                '-data_solicitacao')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

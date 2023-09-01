@@ -19,10 +19,9 @@
                     <h1 class="h2">{{service.local }}</h1>
                     <p class="lead">{{ service.data_inicio|format_date }} ({{service.data_inicio|weekday_name}})</p>
                     <p class="lead">{{service.observacao|linebreaks }}</p>
-                    
 
 
-                    <form action="{% url 'service:addtocart' %}" id="form-add-to-cart">
+                    {% comment %} <form action="{% url 'service:addtocart' %}" id="form-add-to-cart">
                         <div class="form-group">
                             <select id="select-variacoes" name="sid" class="form-control form-control-lg">
                                 <option value="{{ service.id }}">{{service.local}} - {{service.data_inicio|format_date}}
@@ -32,13 +31,22 @@
 
                         <div class="text-left">
                             <button type="submit" class="btn btn-primary btn-lg btn-block">
-                                <i class="fas fa-calendar-day" aria-hidden="true"></i>
-                                Solicitar
+                                <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                                Adicionar
                             </button>
                         </div>
 
+                    </form> {% endcomment %}
+                    
+                    <form action="{% url 'service:addtocart' %}" id="form-add-to-cart-1-click">
+                        <input type="hidden" name="sid" value="{{ service.id }}">
+                        <div class="text-left">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                                <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                                Adicionar
+                            </button>
+                        </div>
                     </form>
-
 
                 </div>
             </div>

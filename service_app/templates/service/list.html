@@ -18,10 +18,12 @@
                 </a>
                 {% endif %}
                 <div class="card-body">
-                    <h5 class="card-title">{{service.local}}</h5>
+                    <h5 class="card-title text-center">{{service.local}}</h5>
                     {% comment %} <p class="card-text">{{ service.observacao|linebreaks }}</p> {% endcomment %}
                     <div class="container product-price-block text-center">
+                        
                         <span class="product-price">
+                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
                             {{service.data_inicio|format_date}} ({{service.data_inicio|weekday_name}})
                         </span>
                     </div>
@@ -31,7 +33,17 @@
                         <i class="fas fa-info-circle" aria-hidden="true"></i>
                         Detalhes
                     </a>
+
+                    <form action="{% url 'service:addtocart' %}" id="form-add-to-cart-1-click">
+                        <input type="hidden" name="sid" value="{{ service.id }}">
+                        <button type="submit" class="btn btn-primary btn-sm m-1 btn-block">
+                          <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                          Adicionar
+                        </button>
+                    </form>
+
                 </div>
+
                 {% endif %}
             </div>
 

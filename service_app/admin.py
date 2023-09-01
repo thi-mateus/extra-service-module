@@ -12,11 +12,11 @@ class ServiceAdmin(admin.ModelAdmin):
 
     @admin.display(description='Das')
     def get_hora_inicio_formatada(self, obj):
-        return utils.format_time_service(obj.hora_inicio)
+        return utils.format_time(obj.hora_inicio)
 
     @admin.display(description='Às')
     def get_hora_termino_formatada(self, obj):
-        return utils.format_time_service(obj.hora_termino)
+        return utils.format_time(obj.hora_termino)
 
     @admin.display(description='Do dia')
     def get_data_inicio_formatado(self, obj):
