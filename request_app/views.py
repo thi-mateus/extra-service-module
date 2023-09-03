@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.db.models import F
 
 from service_app.models import Service
 from profile_app.models import Military
@@ -26,9 +27,14 @@ class ListRequests(RequestMixin, ListView):
     def get_queryset(self):
         military_instance = Military.objects.get(
             usuario=self.request.user)
+
         return Request.objects.filter(
-            id_mil=military_instance, status='S').order_by(
-                '-data_solicitacao')
+            id_mil=military_instance, status='S'
+        ).annotate(
+            service_data_inicio=F('id_sv__data_inicio')
+        ).order_by(
+            'service_data_inicio'
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

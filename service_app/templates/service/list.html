@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load omfilters %}
 
+{% block titulo %}
+Serviços | 
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-lg-12">
@@ -13,7 +17,7 @@
             <div class="card">            
                 
                 {% if  service.image %}
-                <a href="{{ service.slug }}">
+                <a href="{% url 'service:detail' service.slug %}">
                 <img class="card-img-top" src="{{ service.image.url }}" alt="{{service.local}} - {{service.data_inicio}}">
                 </a>
                 {% endif %}
@@ -29,7 +33,7 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-top-light-custom text-center">
-                    <a href="{{ service.slug }}" class="btn btn-primary btn-sm m-1 btn-block">
+                    <a href="{% url 'service:detail' service.slug %}" class="btn btn-primary btn-sm m-1 btn-block">
                         <i class="fas fa-info-circle" aria-hidden="true"></i>
                         Detalhes
                     </a>

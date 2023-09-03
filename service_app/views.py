@@ -5,6 +5,7 @@ from django.views import View
 from django.http import HttpResponse
 from django.contrib import messages
 from django.core.serializers import serialize
+from django.db.models import Q
 
 from . import models
 from profile_app.models import Military
@@ -181,3 +182,23 @@ class PurchaseSummary(View):
             'cart': self.request.session['cart']
         }
         return render(self.request, 'service/purchasesummary.html', context)
+
+
+class Search(ListServices):
+    def get_queryset(self, *args, **kwargs):
+        query = self.request.GET.get('query') or self.request.session['query']
+        qs = super().get_queryset(*args, **kwargs)
+
+        if not query:
+            return qs
+
+        self.request.session['query'] = query
+
+        qs = qs.filter(
+            Q(local__icontains=query) |
+            Q(data_inicio__icontains=query) |
+            Q(militares__qra__icontains=query)
+        ).distinct()
+
+        self.request.session.save()
+        return qs

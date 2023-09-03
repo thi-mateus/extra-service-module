@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load omfilters %}
 
+{% block titulo %}
+{{service.local}} - {{service.data_inicio|format_date}} | 
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-lg-12">
