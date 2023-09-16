@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'service_app',
     'profile_app',
     'request_app',
+    'ocorrencia',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

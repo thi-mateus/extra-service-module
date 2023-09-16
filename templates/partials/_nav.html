@@ -25,9 +25,24 @@
                     <a class="dropdown-item" href="{% url 'profile:create' %}">Atualizar</a>
                     <a class="dropdown-item" href="{% url 'profile:logout' %}">Sair</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{% url 'request:list_requests' %}">Listar Serviços</a>
+                    <a class="dropdown-item" href="{% url 'request:list_requests' %}">Listar Serviços</a>                 
                 </div>
             </li>
+           
+            {% if request.user.is_staff %}
+            <li class="nav-item dropdown active">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Admin
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{% url 'request:list_requests' %}">Listar solicitações</a>
+                    <a class="dropdown-item" href="{% url 'profile:logout' %}">Selecionar Militares</a>
+                    <a class="dropdown-item" href="{% url 'request:list_requests' %}">Outro</a>                 
+                </div>
+            </li>
+            {% endif %}
+
             {% else %}
             <li class="nav-item active">
                 <a class="nav-link" href="{% url 'profile:create' %}">Entrar</a>

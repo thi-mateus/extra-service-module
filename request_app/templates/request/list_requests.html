@@ -9,6 +9,7 @@
 
 <div class="row">
     <div class="col">
+        {% if not request.user.is_staff %}
         <h3>Dados do Militar </h3>
         
         
@@ -23,6 +24,7 @@
             <div class="col-lg-2 font-weight-bold">Email: </div>
             <div class="col-lg-4">{{ military.email }}</div>
         </div>
+        {% endif %}
 
         <div class="row mt-4">
             <div class="col">
@@ -33,6 +35,9 @@
         <div class="table-responsive mt-3">
             <table class="table">
                 <tr>
+                    {% if request.user.is_staff %}
+                    <th>Militar</th>
+                    {% endif %}
                     <th>Local</th>
                     <th>Dia</th>
                     <th>Horário</th>
@@ -41,14 +46,17 @@
                     <th>Status</th>
                 </tr>
 
-                {% for request in request_list %}
+                {% for req in request_list %}
                 <tr>
-                    <td>{{ request.id_sv.local }}</td>
-                    <td>{{ request.id_sv.data_inicio|format_date }}</td>
-                    <td>{{ request.id_sv.hora_inicio|format_time }} às {{ request.id_sv.hora_termino|format_time }}</td>
-                    <td>{{ request.id_sv.observacao }}</td>
-                    <td>{{ request.data_solicitacao|format_datetime }}</td>
-                    <td>{{ request.get_status_display }}</td>
+                    {% if request.user.is_staff %}
+                    <td>{{req.id_mil}}</td>
+                    {% endif %}
+                    <td>{{ req.id_sv.local }}</td>
+                    <td>{{ req.id_sv.data_inicio|format_date }}</td>
+                    <td>{{ req.id_sv.hora_inicio|format_time }} às {{ req.id_sv.hora_termino|format_time }}</td>
+                    <td>{{ req.id_sv.observacao }}</td>
+                    <td>{{ req.data_solicitacao|format_datetime }}</td>
+                    <td>{{ req.get_status_display }}</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -56,10 +64,16 @@
 
 
         <div class="row mt-4">
+            {% if request.user.is_staff %}
+            <div class="col">
+                <a href="{% url 'request:select' %}" class="btn btn-primary btn-block btn-lg">Selecionar</a>
+            </div>
+            {% endif %}
             <div class="col">
                 <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
             </div>
         </div>
+
 
 
     </div>

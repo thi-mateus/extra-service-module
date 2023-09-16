@@ -6,9 +6,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 import copy
+from datetime import datetime
 
 from . import models
 from . import forms
+from .models import Scheduling
 
 
 class ListRequests(DetailView):
@@ -111,6 +113,11 @@ class Create(BaseProfile):
             profile = self.perfilform.save(commit=False)
             profile.usuario = usuario
             profile.save()
+
+            # Criar a instância de Agendamento
+            scheduling = Scheduling(
+                militar=profile, mes_referencia=datetime.today())
+            scheduling.save()
 
             if password:
                 auth = authenticate(

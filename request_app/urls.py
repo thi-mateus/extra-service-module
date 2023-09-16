@@ -7,6 +7,6 @@ urlpatterns = [
     path('list_requests/',
          views.ListRequests.as_view(), name='list_requests'),
     path('saverequest/', views.SaveRequest.as_view(), name='saverequest'),
-    path('list/', views.List.as_view(), name='list'),
+    path('select/', views.Select.as_view(), name='select'),
     path('detail/', views.Detail.as_view(), name='detail'),
 ]

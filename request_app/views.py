@@ -6,10 +6,13 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.db.models import F
+from django.db.models import F, Min
+from datetime import datetime
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.core.exceptions import PermissionDenied
 
 from service_app.models import Service
-from profile_app.models import Military
+from profile_app.models import Military, Scheduling
 from .models import Request
 
 
@@ -25,16 +28,22 @@ class ListRequests(RequestMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        military_instance = Military.objects.get(
-            usuario=self.request.user)
+        if self.request.user.is_staff:
+            # Administrador - Retorna todas as solicitações
+            return Request.objects.all()
 
-        return Request.objects.filter(
-            id_mil=military_instance, status='S'
-        ).annotate(
-            service_data_inicio=F('id_sv__data_inicio')
-        ).order_by(
-            'service_data_inicio'
-        )
+        else:
+            # Militar - Retorna as solicitações apenas do militar logado
+            military_instance = Military.objects.get(
+                usuario=self.request.user)
+
+            return Request.objects.filter(
+                id_mil=military_instance, status='S'
+            ).annotate(
+                service_data_inicio=F('id_sv__data_inicio')
+            ).order_by(
+                'service_data_inicio'
+            )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -140,9 +149,36 @@ class SaveRequest(View):
         return redirect('request:list_requests')
 
 
-class List(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('List')
+class Select(UserPassesTestMixin, ListView):
+    template_name = 'request/select.html'
+    model = Military
+    context_object_name = 'selected_militaries'
+    paginate_by = 25
+    # Redirecionar para a página de login de admin caso o usuário não seja administrador
+    login_url = '/admin/'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_queryset(self):
+        # Obtenha a data atual
+        current_date = datetime.now()
+
+        # Filtrar os militares pelo mês e ano de referência atual
+        queryset = Military.objects.filter(
+            scheduling__mes_referencia__year=current_date.year,
+            scheduling__mes_referencia__month=current_date.month
+        ).annotate(
+            min_extras=Min('scheduling__qtd')
+        ).order_by('min_extras', 'antiguidade')
+
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied  # Lançar exceção 403 personalizada
+
+        return super().get(request, *args, **kwargs)
 
 
 class Detail(View):

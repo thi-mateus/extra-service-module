@@ -19,13 +19,26 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.defaults import permission_denied
+
+from extra_service import views
 
 urlpatterns = [
+
+    # URLs de aplicativos
     path('', include('service_app.urls')),
     path('profile/', include('profile_app.urls')),
     path('request/', include('request_app.urls')),
+    path('ocorrencia/', include('ocorrencia.urls')),
     path('admin/', admin.site.urls),
 
     # TODO: Remover debug toolbar
     path('__debug__', include(debug_toolbar.urls)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler403 = permission_denied
+handler404 = views.pagina_erro_404
+
+urlpatterns += [
+    path('<path:path>', views.pagina_erro_404, name='pagina_erro_404'),
+]

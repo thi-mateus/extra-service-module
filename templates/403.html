@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Página Não Encontrada | {% endblock %}
+{% block titulo %}Acesso Negado | {% endblock %}
 
 {% load omfilters %}
 {% load static %}
@@ -11,17 +11,17 @@
     <div class="col">
         <div class="row mt-4">
             <div class="col">
-                <h3>Página Não Encontrada</h3>
+                <h3>Acesso Negado</h3>
             </div>
         </div>
 
         <div class="alert alert-danger">
-            A página que você está tentando acessar não existe.
+            Você não tem permissão para acessar esta página.
         </div>
 
         <div class="row mt-4">
             <div class="col">
-                <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar à Página Inicial</a>
+                <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
             </div>
         </div>
     </div>
