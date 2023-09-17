@@ -25,3 +25,10 @@ def weekday_name(date):
 
 def cart_total_qtd(cart):
     return sum([item['service_qtd'] for item in cart.values()])
+
+
+def toggle_direction(direction, column):
+    if direction.startswith('-') and direction.lstrip('-') == column:
+        return column
+    else:
+        return f'-{column}'

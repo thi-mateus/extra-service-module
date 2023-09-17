@@ -9,12 +9,15 @@
 
 <div class="row">
     <div class="col">
-  
+
         <div class="row mt-4">
             <div class="col">
                 <h3>Ordenação dos militares</h3>
             </div>
         </div>
+
+        {% for military_data in service_data %}
+        <h4>{{ military_data.service.local }} - {{ military_data.service.data_inicio }}</h4>
 
         <div class="table-responsive mt-3">
             <table class="table">
@@ -24,24 +27,26 @@
                     <th>Antiguidade</th>
                 </tr>
 
-                {% for military in selected_militaries %}
+                {% for military_request in military_data.military_requests %}
                 <tr>
-                    <td>{{ military.grau_hierarquico }} {{ military.qra }}</td>
-                    <td>{{ military.scheduling_set.first.qtd }}</td>
-                    <td>{{ military.antiguidade }}</td>
+                    <td>{{ military_request.military.grau_hierarquico }} {{ military_request.military.qra }}</td>
+                    <td>{{ military_request.qtd }}</td>
+                    <td>{{ military_request.military.antiguidade }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum militar solicitou este serviço.</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
-
+        {% endfor %}
 
         <div class="row mt-4">
             <div class="col">
                 <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
             </div>
         </div>
-
-
 
     </div>
 </div>

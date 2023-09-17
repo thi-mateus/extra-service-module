@@ -28,3 +28,8 @@ def weekday_name(date):
 @register.filter
 def cart_total_qtd(cart):
     return utils.cart_total_qtd(cart)
+
+
+@register.filter
+def toggle_direction(direction, column):
+    return utils.toggle_direction(direction, column)

@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.db.models import F, Min
+from django.db.models import F, Min, Count, Subquery, OuterRef
 from datetime import datetime
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
@@ -152,7 +152,7 @@ class SaveRequest(View):
 class Select(UserPassesTestMixin, ListView):
     template_name = 'request/select.html'
     model = Military
-    context_object_name = 'selected_militaries'
+    context_object_name = 'service_data'
     paginate_by = 25
     # Redirecionar para a página de login de admin caso o usuário não seja administrador
     login_url = '/admin/'
@@ -161,26 +161,111 @@ class Select(UserPassesTestMixin, ListView):
         return self.request.user.is_staff
 
     def get_queryset(self):
-        # Obtenha a data atual
+        # Obtenha todos os serviços
+        services = Service.objects.all()
+
+        # Obtenha o mês e ano de referência atual
         current_date = datetime.now()
 
-        # Filtrar os militares pelo mês e ano de referência atual
-        queryset = Military.objects.filter(
-            scheduling__mes_referencia__year=current_date.year,
-            scheduling__mes_referencia__month=current_date.month
-        ).annotate(
-            min_extras=Min('scheduling__qtd')
-        ).order_by('min_extras', 'antiguidade')
+        # Crie uma lista para armazenar informações de serviço e solicitações
+        service_data = []
 
-        return queryset
+        for service in services:
+            # Para cada serviço, obtenha as solicitações correspondentes
+            requests = Request.objects.filter(id_sv=service)
 
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_staff:
-            raise PermissionDenied  # Lançar exceção 403 personalizada
+            # Crie uma lista para armazenar informações de solicitação
+            request_data = []
 
-        return super().get(request, *args, **kwargs)
+            for request in requests:
+                # Obtenha o militar associado a esta solicitação
+                military = request.id_mil
+
+                # Filtrar as entradas de Scheduling pelo mês de referência atual e pelo militar
+                scheduling = Scheduling.objects.filter(
+                    militar=military,
+                    mes_referencia__year=current_date.year,
+                    mes_referencia__month=current_date.month
+                ).first()  # Pega a primeira entrada se houver múltiplas, ou None se não houver
+
+                if scheduling:
+                    qtd = scheduling.qtd
+                else:
+                    qtd = 0  # Ou qualquer valor padrão que você preferir se não houver um registro em Scheduling
+
+                # Adicione informações da solicitação, do militar e da quantidade à lista de solicitações
+                request_data.append({
+                    'military': military,
+                    'qtd': qtd,
+                })
+
+            # Ordene a lista de solicitações para este serviço com base nos critérios
+            request_data = sorted(request_data, key=lambda x: (
+                x['qtd'], x['military'].antiguidade))
+
+            # Adicione informações do serviço e das solicitações à lista de serviços
+            service_data.append({
+                'service': service,
+                'military_requests': request_data,
+            })
+
+        return service_data
 
 
-class Detail(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('Detail')
+class Detail(UserPassesTestMixin, ListView):
+    template_name = 'request/detail.html'
+    model = Military
+    context_object_name = 'service_data'
+    paginate_by = 25
+    # Redirecionar para a página de login de admin caso o usuário não seja administrador
+    login_url = '/admin/'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_queryset(self):
+        # Obtenha todos os serviços
+        services = Service.objects.all()
+
+        # Obtenha o mês e ano de referência atual
+        current_date = datetime.now()
+
+        # Crie uma lista para armazenar informações de serviço e solicitações
+        service_data = []
+
+        for service in services:
+            # Para cada serviço, obtenha as solicitações correspondentes
+            requests = Request.objects.filter(id_sv=service)
+
+            # Crie uma lista para armazenar informações de solicitação
+            request_data = []
+
+            for request in requests:
+                # Obtenha o militar associado a esta solicitação
+                military = request.id_mil
+
+                # Filtrar as entradas de Scheduling pelo mês de referência atual e pelo militar
+                scheduling = Scheduling.objects.filter(
+                    militar=military,
+                    mes_referencia__year=current_date.year,
+                    mes_referencia__month=current_date.month
+                ).first()  # Pega a primeira entrada se houver múltiplas, ou None se não houver
+
+                if scheduling:
+                    qtd = scheduling.qtd
+                else:
+                    qtd = 0  # Ou qualquer valor padrão que você preferir se não houver um registro em Scheduling
+
+                # Adicione informações da solicitação, do militar e da quantidade à lista de solicitações
+                request_data.append({
+                    'military': military,
+                    'qtd': qtd,
+                })
+
+            # Adicione informações do serviço e das solicitações à lista de serviços
+            service_data.append({
+                'service': service,
+                'military_requests': request_data,
+            })
+
+        return service_data

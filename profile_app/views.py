@@ -8,14 +8,13 @@ from django.contrib import messages
 import copy
 from datetime import datetime
 
-from . import models
+from .models import Military, Scheduling
 from . import forms
-from .models import Scheduling
 
 
 class ListRequests(DetailView):
     template_name = 'profile/list_requests.html'
-    model = models.Military
+    model = Military
     pk_url_kwarg = 'pk'
     context_object_name = 'military'
 
@@ -31,7 +30,7 @@ class BaseProfile(View):
         self.profile = None
 
         if self.request.user.is_authenticated:
-            self.profile = models.Military.objects.filter(
+            self.profile = Military.objects.filter(
                 usuario=self.request.user).first()
 
             self.context = {
@@ -97,7 +96,7 @@ class Create(BaseProfile):
 
             if not self.profile:
                 self.perfilform.cleaned_data['usuario'] = usuario
-                profile = models.Military(**self.perfilform.cleaned_data)
+                profile = Military(**self.perfilform.cleaned_data)
                 profile.save()
             else:
                 profile = self.perfilform.save(commit=False)
@@ -188,3 +187,39 @@ class Logout(View):
         self.request.session['cart'] = cart
         self.request.session.save()
         return redirect('service:list')
+
+
+class ListarMilitares(ListView):
+    model = Military
+    template_name = 'profile/listar_militares.html'
+    context_object_name = 'militares'
+    paginate_by = 25
+
+    def get_queryset(self):
+        order_by = self.request.GET.get('order_by')
+        direction = self.request.GET.get(
+            'direction', 'asc')  # Padrão para ascendente
+
+        if order_by:
+            if direction == 'desc':
+                # Adiciona '-' para ordenação descendente
+                order_by = f'-{order_by}'
+
+            queryset = Military.objects.all().order_by(order_by)
+        else:
+            queryset = Military.objects.all().order_by('antiguidade')  # Ordenação padrão
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['order_by'] = self.request.GET.get('order_by')
+        context['direction'] = self.request.GET.get('direction', 'asc')
+
+        # Verifica e ajusta a direção para alternar entre 'asc' e 'desc'
+        if context['direction'] == 'asc':
+            context['toggle_direction'] = 'desc'
+        else:
+            context['toggle_direction'] = 'asc'
+
+        return context

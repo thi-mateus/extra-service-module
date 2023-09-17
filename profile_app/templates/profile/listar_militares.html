@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Lista dos Militares | {% endblock %}
+
+{% load omfilters %}
+{% load custom_tags %}
+{% load static %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col">
+
+        <div class="row mt-4">
+            <div class="col">
+                <h3>Lista dos militares</h3>
+            </div>
+        </div>
+
+        <div class="table-responsive mt-3">
+            <table class="table">
+                <tr>
+                    <th>{% order_by_link 'qra' 'Militar' order_by direction 'profile:listar_militares' %}</th>
+                    <th>{% order_by_link 'grau_hierarquico' 'Grau Hierárquico' order_by direction 'profile:listar_militares' %}</th>
+                    <th>{% order_by_link 'matricula' 'Matrícula' order_by direction 'profile:listar_militares' %}</th>
+                    <th>{% order_by_link 'telefone' 'Telefone' order_by direction 'profile:listar_militares' %}</th>
+                    <th>{% order_by_link 'email' 'Email' order_by direction 'profile:listar_militares'%}</th>
+                    <th>{% order_by_link 'antiguidade' 'Antiguidade' order_by direction 'profile:listar_militares' %}</th>
+                </tr>
+
+                {% for militar in militares %}
+                <tr>
+                    <td>{{ militar.qra }}</td>
+                    <td>{{ militar.grau_hierarquico }}</td>
+                    <td>{{ militar.matricula }}</td>
+                    <td>{{ militar.telefone }}</td>
+                    <td>{{ militar.email }}</td>
+                    <td>{{ militar.antiguidade }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">Nenhum militar encontrado.</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% include 'partials/_pagination.html' %}
+
+{% endblock %}
