@@ -5,7 +5,8 @@ from datetime import datetime
 from PIL import Image
 import os
 from django.conf import settings
-import uuid
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Service(models.Model):
@@ -53,13 +54,15 @@ class Service(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-
-            slug = slugify(self.local+"-"+str(self.data_inicio).replace("-",
-                           "")+"-"+str(uuid.uuid4()))
-            self.slug = slug
-
+       # Chama o método save padrão para criar o objeto no banco de dados
         super().save(*args, **kwargs)
+
+        # Gera o slug com base na PK após salvar o objeto
+        if not self.slug:
+            slug = slugify(
+                f"{self.local}-{str(self.data_inicio).replace('-', '')}-{str(self.pk)}")
+            self.slug = slug
+            self.save()  # Salva novamente para atualizar o campo de slug
 
         if self.image:
             super().save(*args, **kwargs)
@@ -68,3 +71,12 @@ class Service(models.Model):
 
             if self.image:
                 self.resize_image(self.image, max_image_size)
+
+
+@receiver(post_save, sender=Service)
+def create_slug(sender, instance, **kwargs):
+    if not instance.slug:
+        slug = slugify(
+            f"{instance.local}-{str(instance.data_inicio).replace('-', '')}-{str(instance.pk)}")
+        instance.slug = slug
+        instance.save()

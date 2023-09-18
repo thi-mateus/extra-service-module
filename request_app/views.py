@@ -203,6 +203,12 @@ class ClassificacaoPorCriterios(UserPassesTestMixin, ListView):
             request_data = sorted(request_data, key=lambda x: (
                 x['qtd'], x['military'].antiguidade))
 
+            # Obtenha o número de vagas disponíveis para este serviço
+            numero_de_vagas = service.vagas
+
+            # Limite o número de militares apresentados aos primeiros n, onde n é o número de vagas
+            request_data = request_data[:numero_de_vagas]
+
             # Adicione informações do serviço e das solicitações à lista de serviços
             service_data.append({
                 'service': service,
