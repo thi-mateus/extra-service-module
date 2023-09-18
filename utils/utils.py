@@ -32,3 +32,10 @@ def toggle_direction(direction, column):
         return column
     else:
         return f'-{column}'
+
+
+def get_attribute(obj, attr_name):
+    try:
+        return getattr(obj, attr_name)
+    except AttributeError:
+        return None

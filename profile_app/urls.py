@@ -12,4 +12,8 @@ urlpatterns = [
     path('logout/', views.Logout.as_view(), name='logout'),
     path('listar_militares/', views.ListarMilitares.as_view(),
          name='listar_militares'),
+    path('gerar_pdf_militares/', views.GerarPDFMilitares.as_view(),
+         name='gerar_pdf_militares'),
+    path('gerar_pdf/', views.GerarPDF.as_view(),
+         name='gerar_pdf'),
 ]

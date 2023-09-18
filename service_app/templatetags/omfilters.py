@@ -33,3 +33,8 @@ def cart_total_qtd(cart):
 @register.filter
 def toggle_direction(direction, column):
     return utils.toggle_direction(direction, column)
+
+
+@register.filter
+def get_attribute(obj, attr_name):
+    return utils.get_attribute(obj, attr_name)

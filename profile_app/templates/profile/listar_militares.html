@@ -1,10 +1,9 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Lista dos Militares | {% endblock %}
+{% block titulo %}Lista das Solicitações | {% endblock %}
 
-{% load omfilters %}
 {% load custom_tags %}
-{% load static %}
+{% load omfilters %}
 
 {% block content %}
 
@@ -20,34 +19,31 @@
         <div class="table-responsive mt-3">
             <table class="table">
                 <tr>
-                    <th>{% order_by_link 'qra' 'Militar' order_by direction 'profile:listar_militares' %}</th>
-                    <th>{% order_by_link 'grau_hierarquico' 'Grau Hierárquico' order_by direction 'profile:listar_militares' %}</th>
-                    <th>{% order_by_link 'matricula' 'Matrícula' order_by direction 'profile:listar_militares' %}</th>
-                    <th>{% order_by_link 'telefone' 'Telefone' order_by direction 'profile:listar_militares' %}</th>
-                    <th>{% order_by_link 'email' 'Email' order_by direction 'profile:listar_militares'%}</th>
-                    <th>{% order_by_link 'antiguidade' 'Antiguidade' order_by direction 'profile:listar_militares' %}</th>
+                    {% for column in columns %}
+                    <th>{% order_by_link column.name column.display_name order_by direction 'profile:listar_militares' %}</th>
+                    {% endfor %}
                 </tr>
-
                 {% for militar in militares %}
                 <tr>
-                    <td>{{ militar.qra }}</td>
-                    <td>{{ militar.grau_hierarquico }}</td>
-                    <td>{{ militar.matricula }}</td>
-                    <td>{{ militar.telefone }}</td>
-                    <td>{{ militar.email }}</td>
-                    <td>{{ militar.antiguidade }}</td>
+                    {% for column in columns %}
+                    <td>{{ militar|get_attribute:column.name }}</td>
+                    {% endfor %}
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6">Nenhum militar encontrado.</td>
+                    <td colspan="{{ columns|length }}">Nenhum militar encontrado.</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
-
         <div class="row mt-4">
             <div class="col">
                 <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
+            </div>
+            <div class="col">
+                <a href="{% url 'profile:gerar_pdf' %}" class="btn btn-primary btn-block btn-lg">
+                    <i class="fa-regular fa-file-pdf"></i> Gerar PDF
+                </a>
             </div>
         </div>
 

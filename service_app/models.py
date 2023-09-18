@@ -5,6 +5,7 @@ from datetime import datetime
 from PIL import Image
 import os
 from django.conf import settings
+import uuid
 
 
 class Service(models.Model):
@@ -53,7 +54,9 @@ class Service(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            slug = f'{slugify(self.local+"-"+str(self.data_inicio).replace("-", ""))}'
+
+            slug = slugify(self.local+"-"+str(self.data_inicio).replace("-",
+                           "")+"-"+str(uuid.uuid4()))
             self.slug = slug
 
         super().save(*args, **kwargs)

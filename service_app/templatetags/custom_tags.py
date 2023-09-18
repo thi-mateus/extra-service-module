@@ -25,5 +25,5 @@ def order_by_link(column_name, display_name, current_order_by, current_direction
             icon_class = 'fa fa-caret-down'
 
     link = f'<a href="{url}?order_by={column_name}&direction={direction}">{display_name} <i class="{icon_class}"></i></a>'
-    print(link)
+
     return mark_safe(link)

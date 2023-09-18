@@ -8,6 +8,23 @@ from django.contrib import messages
 import copy
 from datetime import datetime
 
+from reportlab.pdfgen import canvas
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from django.conf import settings
+import os
+
+from django.http import FileResponse
+from django.shortcuts import render
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+
+from openpyxl import Workbook
+
+
 from .models import Military, Scheduling
 from . import forms
 
@@ -222,4 +239,108 @@ class ListarMilitares(ListView):
         else:
             context['toggle_direction'] = 'asc'
 
+        # Adicione a variável 'columns' ao contexto aqui
+        context['columns'] = [
+            {'name': 'qra', 'display_name': 'Militar'},
+            {'name': 'grau_hierarquico', 'display_name': 'Grau Hierárquico'},
+            {'name': 'matricula', 'display_name': 'Matrícula'},
+            {'name': 'antiguidade', 'display_name': 'Antiguidade'},
+            {'name': 'email', 'display_name': 'Email'},
+            {'name': 'telefone', 'display_name': 'Telefone'},
+
+        ]
+
         return context
+
+
+class GerarPDFMilitares(View):
+
+    @staticmethod
+    def link_callback(uri, rel):
+        # Simplesmente retorna uma string vazia para evitar erros de link
+        return ''
+
+    def get(self, request):
+        militares = Military.objects.all()  # Recupere os dados do modelo de Militares
+
+        # Defina a variável 'columns' com as informações das colunas
+        columns = [
+            {'name': 'qra', 'display_name': 'Militar'},
+            {'name': 'grau_hierarquico', 'display_name': 'Grau Hierárquico'},
+            {'name': 'matricula', 'display_name': 'Matrícula'},
+            # Adicione as informações das outras colunas aqui
+        ]
+
+        # Renderize o template HTML com os dados e as colunas
+        template = get_template('profile/listar_militares.html')
+        context = {'militares': militares, 'columns': columns}
+        html = template.render(context)
+
+        # Crie um arquivo PDF a partir do HTML
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="relatorio_militares.pdf"'
+
+        pisa_status = pisa.CreatePDF(
+            html, dest=response, link_callback=self.link_callback)
+
+        if pisa_status.err:
+            return HttpResponse('Ocorreu um erro ao gerar o PDF.')
+
+        return response
+
+
+class GerarPDF(View):
+    def get(self, request):
+        # Crie um objeto BytesIO para armazenar o PDF
+        buffer = BytesIO()
+
+        # Recupere os dados dos militares (você pode ajustar a consulta conforme necessário)
+        militares = Military.objects.all()
+
+        # Crie um documento PDF com o ReportLab
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+        # Crie uma lista para armazenar o conteúdo do PDF
+        elements = []
+
+        # Defina o título personalizado
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="relatorio_militares.pdf"'
+        response['Content-Title'] = 'Relatório de Militares'
+
+        # Crie um estilo para o título
+        styles = getSampleStyleSheet()
+        title_style = styles['Title']
+
+        # Adicione um título ao PDF como um objeto Paragraph com o estilo personalizado
+        title = Paragraph("Relatório de Militares", title_style)
+        elements.append(title)
+
+        # Restante do código para a tabela
+        # Crie uma tabela para exibir os dados dos militares
+        data = [['Nome', 'Grau Hierárquico', 'Matrícula']]
+        for militar in militares:
+            data.append(
+                [militar.qra, militar.grau_hierarquico, militar.matricula])
+
+        # Configure a tabela
+        table = Table(data)
+        table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                                   ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                                   ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                                   ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                                   ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                                   ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                                   ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+
+        # Adicione a tabela ao documento PDF
+        elements.append(table)
+
+        # Construa o PDF
+        doc.build(elements)
+
+        # Configure a resposta HTTP com o conteúdo do BytesIO
+        buffer.seek(0)
+        response.write(buffer.read())
+
+        return response
