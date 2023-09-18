@@ -66,7 +66,7 @@
         <div class="row mt-4">
             {% if request.user.is_staff %}
             <div class="col">
-                <a href="{% url 'request:select' %}" class="btn btn-primary btn-block btn-lg">Selecionar</a>
+                <a href="{% url 'request:classificacao_por_criterios' %}" class="btn btn-primary btn-block btn-lg">Classificar por critérios</a>
             </div>
             {% endif %}
             <div class="col">

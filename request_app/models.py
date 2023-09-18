@@ -17,7 +17,10 @@ class Request(models.Model):
             ('N', 'Negado'),
         )
     )
-    criterio = models.CharField(max_length=100)
+    criterio = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"{self.id_mil} - {self.id_sv} - {self.id_opcao}ª opção"
+
+    class Meta:
+        unique_together = ('id_mil', 'id_sv')

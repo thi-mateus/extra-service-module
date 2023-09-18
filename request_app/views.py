@@ -25,12 +25,12 @@ class RequestMixin:
 class ListRequests(RequestMixin, ListView):
     template_name = 'request/list_requests.html'
     context_object_name = 'request_list'
-    paginate_by = 10
+    paginate_by = 25
 
     def get_queryset(self):
         if self.request.user.is_staff:
             # Administrador - Retorna todas as solicitações
-            return Request.objects.all()
+            return Request.objects.all().order_by('id_sv__data_inicio')
 
         else:
             # Militar - Retorna as solicitações apenas do militar logado
@@ -149,8 +149,8 @@ class SaveRequest(View):
         return redirect('request:list_requests')
 
 
-class Select(UserPassesTestMixin, ListView):
-    template_name = 'request/select.html'
+class ClassificacaoPorCriterios(UserPassesTestMixin, ListView):
+    template_name = 'request/classificacao_por_criterios.html'
     model = Military
     context_object_name = 'service_data'
     paginate_by = 25
@@ -161,24 +161,24 @@ class Select(UserPassesTestMixin, ListView):
         return self.request.user.is_staff
 
     def get_queryset(self):
-        # Obtenha todos os serviços
+        # Todos os serviços
         services = Service.objects.all()
 
-        # Obtenha o mês e ano de referência atual
+        # Mês e ano de referência atual
         current_date = datetime.now()
 
-        # Crie uma lista para armazenar informações de serviço e solicitações
+        # Lista para armazenar informações de serviço e solicitações
         service_data = []
 
         for service in services:
-            # Para cada serviço, obtenha as solicitações correspondentes
+            # Para cada serviço, as solicitações correspondentes
             requests = Request.objects.filter(id_sv=service)
 
-            # Crie uma lista para armazenar informações de solicitação
+            # Lista para armazenar informações de solicitação
             request_data = []
 
             for request in requests:
-                # Obtenha o militar associado a esta solicitação
+                # Militar associado a esta solicitação
                 military = request.id_mil
 
                 # Filtrar as entradas de Scheduling pelo mês de referência atual e pelo militar
@@ -191,7 +191,7 @@ class Select(UserPassesTestMixin, ListView):
                 if scheduling:
                     qtd = scheduling.qtd
                 else:
-                    qtd = 0  # Ou qualquer valor padrão que você preferir se não houver um registro em Scheduling
+                    qtd = 0  # Valor padrão se não houver um registro em Scheduling
 
                 # Adicione informações da solicitação, do militar e da quantidade à lista de solicitações
                 request_data.append({
@@ -208,8 +208,21 @@ class Select(UserPassesTestMixin, ListView):
                 'service': service,
                 'military_requests': request_data,
             })
+        # print(service_data[0]['military_requests'][0])
 
         return service_data
+
+
+class SelecionarMilitares(View):
+    def get(self, request):
+        # Recupere o service_data da sessão
+        service_data = request.session.get('service_data', [])
+        print(service_data)
+
+        # Lógica para seleção de militares dentro das vagas do serviço
+        # ...
+
+        return redirect('request:classificacao_por_criterios')
 
 
 class Detail(UserPassesTestMixin, ListView):

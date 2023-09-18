@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Lista das Solicitações | {% endblock %}
+{% block titulo %}Classificação por critérios | {% endblock %}
 
 {% load omfilters %}
 {% load static %}
@@ -17,7 +17,7 @@
         </div>
 
         {% for military_data in service_data %}
-        <h4>{{ military_data.service.local }} - {{ military_data.service.data_inicio }}</h4>
+        <h4>{{ military_data.service.local }} - {{ military_data.service.data_inicio|format_date }} - Vagas: {{ military_data.service.vagas }} </h4>
 
         <div class="table-responsive mt-3">
             <table class="table">
@@ -43,6 +43,11 @@
         {% endfor %}
 
         <div class="row mt-4">
+            {% if request.user.is_staff %}
+            <div class="col">
+                <a href="{% url 'request:selecionar' %}" class="btn btn-primary btn-block btn-lg">Selecionar</a>
+            </div>
+            {% endif %}
             <div class="col">
                 <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
             </div>

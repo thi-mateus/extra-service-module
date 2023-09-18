@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Classificação por critérios | {% endblock %}
+
+{% load omfilters %}
+{% load static %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col">
+
+        <div class="row mt-4">
+            <div class="col">
+                <h3>Ordenação dos militares</h3>
+            </div>
+        </div>
+
+        {% for military_data in service_data %}
+        <h4>{{ military_data.service.local }} - {{ military_data.service.data_inicio|format_date }} - Vagas: {{ military_data.service.vagas }} </h4>
+
+        <div class="table-responsive mt-3">
+            <table class="table">
+                <tr>
+                    <th>Militar</th>
+                    <th>QTD</th>
+                    <th>Antiguidade</th>
+                </tr>
+
+                {% for military_request in military_data.military_requests %}
+                <tr>
+                    <td>{{ military_request.military.grau_hierarquico }} {{ military_request.military.qra }}</td>
+                    <td>{{ military_request.qtd }}</td>
+                    <td>{{ military_request.military.antiguidade }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">Nenhum militar solicitou este serviço.</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endfor %}
+
+        <div class="row mt-4">
+            {% if request.user.is_staff %}
+            <div class="col">
+                <a href="{% url 'request:classificacao_por_criterios' %}" class="btn btn-primary btn-block btn-lg">Selecionar</a>
+            </div>
+            {% endif %}
+            <div class="col">
+                <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% include 'partials/_pagination.html' %}
+
+{% endblock %}

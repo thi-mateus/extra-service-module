@@ -36,6 +36,7 @@
                     Admin
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{% url 'admin:index' %}">Dashboard do Admin</a>
                     <a class="dropdown-item" href="{% url 'request:list_requests' %}">Listar Solicitações</a>
                     <a class="dropdown-item" href="{% url 'profile:listar_militares' %}">Listar Militares</a>
                     <a class="dropdown-item" href="{% url 'request:list_requests' %}">Outro</a>                 
