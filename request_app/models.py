@@ -1,11 +1,13 @@
 from django.db import models
 from profile_app.models import Military
 from service_app.models import Service
+from rodadas.models import Rodada
 
 
 class Request(models.Model):
     id_mil = models.ForeignKey(Military, on_delete=models.CASCADE)
     id_sv = models.ForeignKey(Service, on_delete=models.CASCADE)
+    id_rod = models.ForeignKey(Rodada, on_delete=models.CASCADE)
     id_opcao = models.PositiveSmallIntegerField()
     data_solicitacao = models.DateTimeField()
     status = models.CharField(

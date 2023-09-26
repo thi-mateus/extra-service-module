@@ -6,6 +6,11 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.core.serializers import serialize
 from django.db.models import Q
+from django.views.generic.edit import CreateView
+from .models import Service
+from .forms import ServiceForm
+from django.urls import reverse_lazy
+
 
 from . import models
 from profile_app.models import Military
@@ -15,7 +20,7 @@ class ListServices(ListView):
     model = models.Service
     template_name = 'service/list.html'
     context_object_name = 'services'
-    paginate_by = 10
+    paginate_by = 30
 
     def get_queryset(self):
         return models.Service.objects.all().order_by('data_inicio')
@@ -202,3 +207,12 @@ class Search(ListServices):
 
         self.request.session.save()
         return qs
+
+
+class AddService(CreateView):
+
+    model = Service
+    form_class = ServiceForm  # Use o formulário de serviço
+    template_name = 'service/add_service.html'  # Crie este template
+    # Redirecione após a criação bem-sucedida
+    success_url = reverse_lazy('service:list')

@@ -12,7 +12,7 @@ class RequestAdminForm(forms.ModelForm):
 class RequestAdmin(admin.ModelAdmin):
     form = RequestAdminForm
     list_display = ['id_mil', 'id_sv',
-                    'id_opcao', 'data_solicitacao', 'status']
+                    'id_opcao', 'id_rod', 'data_solicitacao', 'status']
 
 
 admin.site.register(Request, RequestAdmin)

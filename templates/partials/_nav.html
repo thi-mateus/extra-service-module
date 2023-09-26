@@ -2,7 +2,7 @@
 {% load omfilters %}
 
 <nav class="navbar navbar-dark bg-primary navbar-expand-lg">
-    <a class="navbar-brand" href="{% url 'service:list' %}">Extra Service</a>
+    <a class="navbar-brand" href="{% url 'service:list' %}">SIFT</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -36,7 +36,8 @@
                     Admin
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="{% url 'admin:index' %}">Dashboard do Admin</a>
+                    <a class="dropdown-item" href="{% url 'admin:index' %}" target="_blank">Dashboard do Admin</a>
+                    <a class="dropdown-item" href="{% url 'service:add_service' %}">Criar Serviço</a>
                     <a class="dropdown-item" href="{% url 'request:list_requests' %}">Listar Solicitações</a>
                     <a class="dropdown-item" href="{% url 'profile:listar_militares' %}">Listar Militares</a>
                     <a class="dropdown-item" href="{% url 'request:list_requests' %}">Outro</a>                 

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'profile_app',
     'request_app',
     'ocorrencia',
+    'rodadas',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
