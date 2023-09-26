@@ -278,7 +278,7 @@ class GerarPDFMilitares(View):
 
         # Crie um arquivo PDF a partir do HTML
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="relatorio_militares.pdf"'
+        response['Content-Disposition'] = 'attachment; filename="relacao_militares_ft.pdf"'
 
         pisa_status = pisa.CreatePDF(
             html, dest=response, link_callback=self.link_callback)
@@ -305,15 +305,15 @@ class GerarPDF(View):
 
         # Defina o título personalizado
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="relatorio_militares.pdf"'
-        response['Content-Title'] = 'Relatório de Militares'
+        response['Content-Disposition'] = 'attachment; filename="relacao_militares_ft.pdf"'
+        response['Content-Title'] = 'Relação dos Militares da Força Tática'
 
         # Crie um estilo para o título
         styles = getSampleStyleSheet()
         title_style = styles['Title']
 
         # Adicione um título ao PDF como um objeto Paragraph com o estilo personalizado
-        title = Paragraph("Relatório de Militares", title_style)
+        title = Paragraph("Relação dos Militares da Força Tática", title_style)
         elements.append(title)
 
         # Restante do código para a tabela

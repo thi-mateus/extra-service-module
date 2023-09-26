@@ -10,46 +10,75 @@
 <div class="row">
     <div class="col">
 
-        <div class="row mt-4">
-            <div class="col">
-                <h3>Ordenação dos militares</h3>
+        <div class="row mt-4 mb-4">
+            <div class="col d-flex align-items-center flex-grow-1">
+                <h3>{% if listar_todos %}Seleção Manual{% else %}Seleção Automática{% endif %}</h3>
+            </div>
+            <div class="col d-flex align-items-center justify-content-end flex-grow-0">
+                {% with listar_todos_not=listar_todos|yesno:"0,1" %}
+                <a href="{% url 'request:classificacao_por_criterios' listar_todos=listar_todos_not %}" class="btn btn-primary btn-sm m-1 toggle-button" title="{% if listar_todos %}Listar os militares dentro das vagas{% else %}Listar todos os militares{% endif %}">
+                    <span class="fas {% if listar_todos %}fa-filter{% else %}fa-list{% endif %}"></span>
+                </a>
+                {% endwith %}
             </div>
         </div>
 
-        {% for military_data in service_data %}
-        <h4>{{ military_data.service.local }} - {{ military_data.service.data_inicio|format_date }} - Vagas: {{ military_data.service.vagas }} </h4>
-
-        <div class="table-responsive mt-3">
-            <table class="table">
-                <tr>
-                    <th>Militar</th>
-                    <th>QTD</th>
-                    <th>Antiguidade</th>
-                </tr>
-
-                {% for military_request in military_data.military_requests %}
-                <tr>
-                    <td>{{ military_request.military.grau_hierarquico }} {{ military_request.military.qra }}</td>
-                    <td>{{ military_request.qtd }}</td>
-                    <td>{{ military_request.military.antiguidade }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3">Nenhum militar solicitou este serviço.</td>
-                </tr>
-                {% endfor %}
-            </table>
-        </div>
-        {% endfor %}
+        <form method="post" action="{% url 'request:classificacao_por_criterios' listar_todos=listar_todos %}">
+            {% csrf_token %}
+            
+            {% for service_info in classification_list %}
+            <h4>{{ service_info.service.local }} - {{ service_info.service.data_inicio|date:"d/m/Y" }} - Vagas: {{ service_info.service.vagas }}</h4>
+        
+            <div class="table-responsive mt-3">
+                <table class="table">
+                    <tr>
+                        <th>Militar</th>
+                        <th>QTD</th>
+                        <th>Antiguidade</th>
+                        <!-- Renderiza os checkboxes apenas quando listar_todos for igual a 1 -->
+                        {% if listar_todos %}
+                        <th>Selecionar</th>
+                        {% endif %}
+                    </tr>
+        
+                    {% for request_info in service_info.request %}
+                    <tr>
+                        <td>{{ request_info.request.id_mil.grau_hierarquico }} {{ request_info.request.id_mil.qra }}</td>
+                        <td>{{ request_info.qtd }}</td>
+                        <td>{{ request_info.request.id_mil.antiguidade }}</td>
+                        <!-- Renderiza os checkboxes apenas quando listar_todos for igual a 1 -->
+                        {% if listar_todos %}
+                        <td>
+                            <input type="checkbox" name="{{ service_info.service.id }}" value="{{ request_info.request.id_mil.id }}" {% if request_info.request.id_mil in service_info.service.militares.all %}checked{% endif %}>
+                            <!-- Campo oculto para rastrear militares originalmente associados -->
+                            <input type="hidden" name="original_militaries_{{ service_info.service.id }}_{{ request_info.request.id_mil.id }}" value="{{ request_info.request.id_mil.id }}">
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if listar_todos %}4{% else %}3{% endif %}">Nenhum militar solicitou este serviço.</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Selecionar</button>
+        </form>
+        
 
         <div class="row mt-4">
             {% if request.user.is_staff %}
             <div class="col">
-                <a href="{% url 'request:selecionar' %}" class="btn btn-primary btn-block btn-lg">Selecionar</a>
+                <form method="post" action="{% url 'request:classificacao_por_criterios' listar_todos=listar_todos %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Selecionar</button>
+                </form>
             </div>
             {% endif %}
             <div class="col">
-                <a href="{% url 'service:list' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
+                <a href="{% url 'request:list_requests' %}" class="btn btn-primary btn-block btn-lg">Voltar</a>
             </div>
         </div>
 

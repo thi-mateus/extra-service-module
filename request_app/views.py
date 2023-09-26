@@ -1,19 +1,20 @@
 from django.shortcuts import get_object_or_404, render, redirect, reverse
 from django.views.generic import ListView, DetailView
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.db.models import F, Min, Count, Subquery, OuterRef
+from django.db.models import F
 from datetime import datetime
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.core.exceptions import PermissionDenied
+from django.db import transaction
 
 from service_app.models import Service
 from profile_app.models import Military, Scheduling
 from .models import Request
+from .utils import get_service_data, get_request_data
 
 
 class RequestMixin:
@@ -30,20 +31,23 @@ class ListRequests(RequestMixin, ListView):
     def get_queryset(self):
         if self.request.user.is_staff:
             # Administrador - Retorna todas as solicitações
-            return Request.objects.all().order_by('id_sv__data_inicio')
+            queryset = Request.objects.all().order_by('id_sv__data_inicio')
+            return queryset
 
         else:
             # Militar - Retorna as solicitações apenas do militar logado
             military_instance = Military.objects.get(
                 usuario=self.request.user)
 
-            return Request.objects.filter(
+            queryset = Request.objects.filter(
                 id_mil=military_instance, status='S'
             ).annotate(
                 service_data_inicio=F('id_sv__data_inicio')
             ).order_by(
                 'service_data_inicio'
             )
+
+            return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -152,7 +156,7 @@ class SaveRequest(View):
 class ClassificacaoPorCriterios(UserPassesTestMixin, ListView):
     template_name = 'request/classificacao_por_criterios.html'
     model = Military
-    context_object_name = 'service_data'
+    context_object_name = 'classification_list'
     paginate_by = 25
     # Redirecionar para a página de login de admin caso o usuário não seja administrador
     login_url = '/admin/'
@@ -161,78 +165,88 @@ class ClassificacaoPorCriterios(UserPassesTestMixin, ListView):
         return self.request.user.is_staff
 
     def get_queryset(self):
-        # Todos os serviços
+        listar_todos = self.kwargs.get('listar_todos', 0)
+        listar_todos = int(listar_todos)
         services = Service.objects.all()
 
-        # Mês e ano de referência atual
-        current_date = datetime.now()
+        if not listar_todos:
+            classification_list = get_request_data(
+                services, listar_todos=False)
+        else:
+            classification_list = get_request_data(services, listar_todos=True)
 
-        # Lista para armazenar informações de serviço e solicitações
-        service_data = []
+        return classification_list
 
-        for service in services:
-            # Para cada serviço, as solicitações correspondentes
-            requests = Request.objects.filter(id_sv=service)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['listar_todos'] = int(self.kwargs.get(
+            'listar_todos', 0))  # Converte para inteiro
+        return context
 
-            # Lista para armazenar informações de solicitação
-            request_data = []
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('/admin/')
 
-            for request in requests:
-                # Militar associado a esta solicitação
-                military = request.id_mil
+        listar_todos = int(self.kwargs.get('listar_todos', 0))
 
-                # Filtrar as entradas de Scheduling pelo mês de referência atual e pelo militar
-                scheduling = Scheduling.objects.filter(
-                    militar=military,
-                    mes_referencia__year=current_date.year,
-                    mes_referencia__month=current_date.month
-                ).first()  # Pega a primeira entrada se houver múltiplas, ou None se não houver
+        if listar_todos:
+            # Obtenha todos os serviços
+            services = Service.objects.all()
 
-                if scheduling:
-                    qtd = scheduling.qtd
-                else:
-                    qtd = 0  # Valor padrão se não houver um registro em Scheduling
+            for service in services:
+                # Obtenha a lista de militares selecionados para este serviço com base no nome do campo de checkbox dinâmico
+                selected_militaries_ids = request.POST.getlist(str(service.id))
+                # Obtenha os objetos de militar correspondentes aos IDs selecionados
+                selected_militaries = Military.objects.filter(
+                    pk__in=selected_militaries_ids)
 
-                # Adicione informações da solicitação, do militar e da quantidade à lista de solicitações
-                request_data.append({
-                    'military': military,
-                    'qtd': qtd,
-                })
+                # Obtenha a lista de militares originalmente associados a este serviço
+                original_militaries = service.militares.all()
 
-            # Ordene a lista de solicitações para este serviço com base nos critérios
-            request_data = sorted(request_data, key=lambda x: (
-                x['qtd'], x['military'].antiguidade))
+                # Adicione militares selecionados que não estejam associados ao serviço
+                for military in selected_militaries:
+                    if military not in original_militaries:
+                        service.militares.add(military)
+                        req = Request.objects.filter(
+                            id_sv=service, id_mil=military).first()
+                        req.status = 'A'
+                        req.save()
 
-            # Obtenha o número de vagas disponíveis para este serviço
-            numero_de_vagas = service.vagas
+                # Remova militares que não foram selecionados (caixa de seleção desmarcada)
+                for military in original_militaries:
+                    if military not in selected_militaries:
+                        service.militares.remove(military)
+                        req = Request.objects.filter(
+                            id_sv=service, id_mil=military).first()
+                        req.status = 'S'
+                        req.save()
+        else:
+            # Lógica para processar quando listar_todos=0
+            queryset = self.get_queryset()  # Obtenha o queryset
+            services = [entry['service'] for entry in queryset]
 
-            # Limite o número de militares apresentados aos primeiros n, onde n é o número de vagas
-            request_data = request_data[:numero_de_vagas]
+            for entry in queryset:
+                # Obtenha os militares correspondentes à solicitação
+                requests = entry['request']
+                military_ids = [req['request'].id_mil.id for req in requests]
+                selected_militaries = Military.objects.filter(
+                    pk__in=military_ids)
 
-            # Adicione informações do serviço e das solicitações à lista de serviços
-            service_data.append({
-                'service': service,
-                'military_requests': request_data,
-            })
-        # print(service_data[0]['military_requests'][0])
+                # Associe os militares aos serviços correspondentes
+                service = entry['service']
+                for military in selected_militaries:
+                    if military not in service.militares.all():
+                        service.militares.add(military)
+                        req = Request.objects.filter(
+                            id_sv=service, id_mil=military).first()
+                        req.status = 'A'
+                        req.save()
 
-        return service_data
-
-
-class SelecionarMilitares(View):
-    def get(self, request):
-        # Recupere o service_data da sessão
-        service_data = request.session.get('service_data', [])
-        print(service_data)
-
-        # Lógica para seleção de militares dentro das vagas do serviço
-        # ...
-
-        return redirect('request:classificacao_por_criterios')
+        return redirect(reverse('request:classificacao_por_criterios', kwargs={'listar_todos': listar_todos}))
 
 
-class Detail(UserPassesTestMixin, ListView):
-    template_name = 'request/detail.html'
+class SelecionarMilitares(UserPassesTestMixin, ListView):
+    template_name = 'request/selecionados.html'
     model = Military
     context_object_name = 'service_data'
     paginate_by = 25
@@ -242,49 +256,78 @@ class Detail(UserPassesTestMixin, ListView):
     def test_func(self):
         return self.request.user.is_staff
 
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('/admin/')
+
+        # Processar service_data como desejar
+        # ...
+
+        return redirect('request:selecionados')
+
     def get_queryset(self):
+        services = Service.objects.all()
+        service_data = get_service_data(services, listar_todos=False)
+        return service_data
+
+
+class Detail(UserPassesTestMixin, ListView):
+    template_name = 'request/detail.html'
+    model = Military
+    context_object_name = 'classification_list'
+    paginate_by = 25
+    # Redirecionar para a página de login de admin caso o usuário não seja administrador
+    login_url = '/admin/'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_queryset(self):
+        listar_todos = self.kwargs.get('listar_todos', 0)
+        listar_todos = int(listar_todos)
+        services = Service.objects.all()
+
+        if not listar_todos:
+            classification_list = get_request_data(
+                services, listar_todos=False)
+        else:
+            classification_list = get_request_data(services, listar_todos=True)
+
+        return classification_list
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['listar_todos'] = int(self.kwargs.get(
+            'listar_todos', 0))  # Converte para inteiro
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('/admin/')
+        listar_todos = int(self.kwargs.get('listar_todos', 0))
+
         # Obtenha todos os serviços
         services = Service.objects.all()
 
-        # Obtenha o mês e ano de referência atual
-        current_date = datetime.now()
-
-        # Crie uma lista para armazenar informações de serviço e solicitações
-        service_data = []
-
         for service in services:
-            # Para cada serviço, obtenha as solicitações correspondentes
-            requests = Request.objects.filter(id_sv=service)
+            # Obtenha a lista de militares selecionados para este serviço com base no nome do campo de checkbox dinâmico
+            selected_militaries_ids = request.POST.getlist(str(service.id))
 
-            # Crie uma lista para armazenar informações de solicitação
-            request_data = []
+            # Verifique se há militares selecionados para este serviço
+            if selected_militaries_ids:
+                # Obtenha os objetos de militar correspondentes aos IDs selecionados
+                selected_militaries = Military.objects.filter(
+                    pk__in=selected_militaries_ids)
 
-            for request in requests:
-                # Obtenha o militar associado a esta solicitação
-                military = request.id_mil
+                # Itere sobre os militares selecionados
+                for military in selected_militaries:
+                    # Verifique se o militar não está associado ao serviço
+                    if military not in service.militares.all():
+                        # Se o militar não estiver associado ao serviço, adicione-o
+                        service.militares.add(military)
 
-                # Filtrar as entradas de Scheduling pelo mês de referência atual e pelo militar
-                scheduling = Scheduling.objects.filter(
-                    militar=military,
-                    mes_referencia__year=current_date.year,
-                    mes_referencia__month=current_date.month
-                ).first()  # Pega a primeira entrada se houver múltiplas, ou None se não houver
+                # Atualize o status das solicitações para 'Agendado' (A)
+                Request.objects.filter(
+                    id_mil__in=selected_militaries, id_sv=service).update(status='A')
 
-                if scheduling:
-                    qtd = scheduling.qtd
-                else:
-                    qtd = 0  # Ou qualquer valor padrão que você preferir se não houver um registro em Scheduling
-
-                # Adicione informações da solicitação, do militar e da quantidade à lista de solicitações
-                request_data.append({
-                    'military': military,
-                    'qtd': qtd,
-                })
-
-            # Adicione informações do serviço e das solicitações à lista de serviços
-            service_data.append({
-                'service': service,
-                'military_requests': request_data,
-            })
-
-        return service_data
+        return redirect('request:selecionados')
